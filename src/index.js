@@ -6,7 +6,15 @@ const port = process.env.PORT || 3000;
 
 // App send Hello World as the response in the "/ " home route.
 app.get("/", (req, res) => {
-  res.send("Hello World");
+  res.send("<h1>Hello World</h1>");
+});
+
+app.get("/limited", (req, res) => {
+  res.send("<h1>Limited Requests on this Route.</h1>");
+});
+
+app.get("/unlimited", (req, res) => {
+  res.send("<h1>Unlimited Requests on this Route.</h1>");
 });
 
 // App listens to port 3000
