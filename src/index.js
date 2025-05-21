@@ -1,22 +1,23 @@
 import express from "express";
-import rateLimter from "middleware/rateLimter.js";
+import rateLimter from "./middleware/rateLimter.js";
 import "dotenv/config";
 const app = express();
 
 const port = process.env.PORT || 3000;
 
-// App send Hello World as the response in the "/ " home route.
+// Home route which sends Hello World as the response
 app.get("/", (req, res) => {
-  res.send("<h1>Hello World</h1>");
+  res.send("Hello World");
 });
 
-// Route "/limtied" contains a middleware 'rateLimter' which rate limits the requests passed on the route
+// Route for limited requests, with rateLimiter middleware
 app.get("/limited", rateLimter, (req, res) => {
-  res.send("<h1>Limited Requests on this Route.</h1>");
+  res.send("Limited Requests on this Route.");
 });
 
+// Route for unlimited requests
 app.get("/unlimited", (req, res) => {
-  res.send("<h1>Unlimited Requests on this Route.</h1>");
+  res.send("Unlimited Requests on this Route.");
 });
 
 // App listens to port 3000
