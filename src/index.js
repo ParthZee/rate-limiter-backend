@@ -1,4 +1,5 @@
 import express from "express";
+import rateLimter from "middleware/rateLimter.js";
 import "dotenv/config";
 const app = express();
 
@@ -9,7 +10,8 @@ app.get("/", (req, res) => {
   res.send("<h1>Hello World</h1>");
 });
 
-app.get("/limited", (req, res) => {
+// Route "/limtied" contains a middleware 'rateLimter' which rate limits the requests passed on the route
+app.get("/limited", rateLimter, (req, res) => {
   res.send("<h1>Limited Requests on this Route.</h1>");
 });
 
