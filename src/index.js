@@ -1,5 +1,5 @@
 import express from "express";
-import rateLimter from "./middleware/rateLimter.js";
+import fixedWindowRateLimiter from "./middleware/fixedWindowRateLimiter.js";
 import "dotenv/config";
 const app = express();
 
@@ -11,7 +11,7 @@ app.get("/", (req, res) => {
 });
 
 // Route for limited requests, with rateLimiter middleware
-app.get("/limited", rateLimter, (req, res) => {
+app.get("/limited", fixedWindowRateLimiter, (req, res) => {
   res.send("Limited Requests on this Route.");
 });
 
