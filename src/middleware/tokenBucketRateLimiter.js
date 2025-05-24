@@ -8,31 +8,33 @@ const tokenBucketRateLimiter = (req, res, next) => {
 
   // Condition to check if the client has not made request to the route before
   if (!ipTracker.has(ip)) {
-    ipTracker.set(ip, { currentTokens: 10, lastRefillTime: Date.now() });
+    ipTracker.set(ip, { currentTokens: 9, lastRefillTime: Date.now() }); // Token set as 9 as already a request has been made
   }
   // Client has already made request to the route before
   else {
     const clientData = ipTracker.get(ip);
-    const timeLeftForToken = Math.floor(
-      (Date.now() - clientData.lastRefillTime) / 1000
-    ); // In seconds
-    const tokensToAdd = timeLeftForToken / 6; // 1 token gets added every 6 seconds
 
-    if (clientData.currentTokens < 0 && tokensToAdd < 0) {
+    const msSinceLastRefill = Date.now() - clientData.lastRefillTime; // elapsed time
+    const msUntilNextToken = 6000 - (msSinceLastRefill % 6000);
+    const retryAfterSeconds = Math.ceil(msUntilNextToken / 1000);
+
+    const tokensToAdd = Math.floor(msSinceLastRefill / 6000); // 1 token gets added every 6 seconds
+
+    if (tokensToAdd > 0) {
+      clientData.currentTokens = Math.min(
+        10,
+        clientData.currentTokens + tokensToAdd
+      ); //if the tokens are greater than 10, it will take 10 as its minimum
+      clientData.lastRefillTime += tokensToAdd * 6000;
+    }
+
+    if (clientData.currentTokens === 0) {
       // Retry-After is a standard HTTP header for rate limiting
-      res.setHeader("Retry-After", timeLeftForToken);
+      res.setHeader("Retry-After", retryAfterSeconds);
 
       return res
         .status(429)
-        .send(`Too Many requests, try again after ${timeLeftForToken}`);
-    }
-
-    if (tokensToAdd > 0) {
-      if (tokensToAdd > 10) {
-        clientData.currentTokens = 10;
-      } else {
-        clientData.currentTokens = tokensToAdd;
-      }
+        .send(`Too Many requests, try again after ${retryAfterSeconds}`);
     }
     clientData.currentTokens--;
   }
