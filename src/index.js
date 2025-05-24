@@ -1,5 +1,6 @@
 import express from "express";
 import fixedWindowRateLimiter from "./middleware/fixedWindowRateLimiter.js";
+import tokenBucketRateLimiter from "./middleware/tokenBucketRateLimiter.js";
 import "dotenv/config";
 const app = express();
 
@@ -10,8 +11,8 @@ app.get("/", (req, res) => {
   res.send("Hello World");
 });
 
-// Route for limited requests, with rateLimiter middleware
-app.get("/limited", fixedWindowRateLimiter, (req, res) => {
+// Route for limited requests, with appropriate rate limiting middleware
+app.get("/limited", tokenBucketRateLimiter, (req, res) => {
   res.send("Limited Requests on this Route.");
 });
 
