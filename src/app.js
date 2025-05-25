@@ -11,7 +11,7 @@ app.get("/", (req, res) => {
 
 // Route for limited requests, with appropriate rate limiting middleware
 app.get("/limited", tokenBucketRateLimiter, (req, res) => {
-  res.send("Limited Requests on this Route.");
+  res.status(200).send("Limited Requests on this Route.");
 });
 
 // Route for unlimited requests
