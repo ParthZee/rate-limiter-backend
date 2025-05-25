@@ -1,10 +1,8 @@
 import express from "express";
 import fixedWindowRateLimiter from "./middleware/fixedWindowRateLimiter.js";
 import { tokenBucketRateLimiter } from "./middleware/tokenBucketRateLimiter.js";
-import "dotenv/config";
-const app = express();
 
-const port = process.env.PORT || 3000;
+const app = express();
 
 // Home route which sends Hello World as the response
 app.get("/", (req, res) => {
@@ -21,7 +19,4 @@ app.get("/unlimited", (req, res) => {
   res.send("Unlimited Requests on this Route.");
 });
 
-// App listens to port 3000
-app.listen(port, () => {
-  console.log(`App is listening on port no. ${port}`);
-});
+export default app;
