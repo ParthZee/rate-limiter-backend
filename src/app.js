@@ -4,6 +4,10 @@ import { tokenBucketRateLimiter } from "./middleware/tokenBucketRateLimiter.js";
 
 const app = express();
 
+// Enable trust proxy so Express respects the X-Forwarded-For header,
+// allowing us to simulate client IPs behind a proxy (e.g., for testing)
+app.enable("trust proxy");
+
 // Home route which sends Hello World as the response
 app.get("/", (req, res) => {
   res.send("Hello World");
