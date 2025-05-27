@@ -1,6 +1,6 @@
 import express from "express";
-import fixedWindowRateLimiter from "./middleware/fixedWindowRateLimiter.js";
-import { tokenBucketRateLimiter } from "./middleware/tokenBucketRateLimiter.js";
+import fixedWindowRateLimiter from "./middleware/fixedWindow.js";
+import { tokenBucketRateLimiter } from "./middleware/tokenBucket.js";
 
 const app = express();
 
