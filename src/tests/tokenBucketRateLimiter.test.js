@@ -1,7 +1,7 @@
 import {
   tokenBucketRateLimiter,
   ipTracker,
-} from "../middleware/tokenBucketRateLimiter.js";
+} from "../middleware/tokenBucket.js";
 
 import { jest } from "@jest/globals";
 

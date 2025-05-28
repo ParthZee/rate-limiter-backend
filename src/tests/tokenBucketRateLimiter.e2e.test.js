@@ -1,5 +1,5 @@
 import app from "../app.js";
-import { ipTracker } from "../middleware/tokenBucketRateLimiter.js";
+import { ipTracker } from "../middleware/tokenBucket.js";
 import { jest } from "@jest/globals";
 import request from "supertest";
 

@@ -1,4 +1,4 @@
-import fixedWindowRateLimiter from "../middleware/fixedWindowRateLimiter.js";
+import fixedWindowRateLimiter from "../middleware/fixedWindow.js";
 import { jest } from "@jest/globals";
 
 describe("Rate Limiter Middleware", () => {
