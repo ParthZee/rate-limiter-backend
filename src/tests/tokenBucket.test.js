@@ -66,7 +66,8 @@ describe("Token Bucket Algorithm", () => {
     jest.advanceTimersByTime(6000);
     tokenBucketRateLimiter(req, res, next);
     clientData = ipTracker.get(req.ip);
-    expect(clientData.currentTokens).toBe(8); // Should refill +1 (to 9), but request consumes 1 => back to 8
+    // Should refill +1 (to 9), but request consumes 1 => back to 8
+    expect(clientData.currentTokens).toBe(8);
 
     jest.useRealTimers();
   });
@@ -87,7 +88,8 @@ describe("Token Bucket Algorithm", () => {
     res.status.mockClear();
     next.mockClear();
 
-    jest.advanceTimersByTime(6000); //simulate refill of a single token after 6 seconds
+    // Simulate refill of a single token after 6 seconds
+    jest.advanceTimersByTime(6000);
 
     // Now the request call should be allowed as token is refilled
     tokenBucketRateLimiter(req, res, next);
@@ -102,9 +104,9 @@ describe("Token Bucket Algorithm", () => {
   test("Token count should not exceed the bucket size limit (10)", () => {
     jest.useFakeTimers();
 
-    tokenBucketRateLimiter(req, res, next); // now 9
-    jest.advanceTimersByTime(60000); // enough to generate 10 tokens
-    tokenBucketRateLimiter(req, res, next); // triggers refill
+    tokenBucketRateLimiter(req, res, next); // Now 9
+    jest.advanceTimersByTime(60000); // Enough to generate 10 tokens
+    tokenBucketRateLimiter(req, res, next); // Triggers refill
 
     const clientData = ipTracker.get(req.ip);
     expect(clientData.currentTokens).toBeLessThanOrEqual(10);

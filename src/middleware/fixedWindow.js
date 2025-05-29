@@ -1,14 +1,14 @@
-//Middleware to implement Fixed Window Rate Limiter
+// Middleware to implement Fixed Window Rate Limiter
 // Creating a map to store the ip addresses, their request count, and their first request time
 const ipTracker = new Map();
 
 // Middleware Function
 const fixedWindowRateLimiter = (req, res, next) => {
   const rawIp = req.ip;
-  const ip = rawIp.startsWith("::ffff:") ? rawIp.slice(7) : rawIp; //slicing as we are getting IPv6-mapped IPv4 address if executed on local machine (eg. ::ffff:127.0.0.1)
-  const oneMin = 60000; //60,000 milliseconds
+  // Slicing as we are getting IPv6-mapped IPv4 address if executed on local machine (eg. ::ffff:127.0.0.1)
+  const ip = rawIp.startsWith("::ffff:") ? rawIp.slice(7) : rawIp;
+  const oneMin = 60000;
 
-  // Condition to check if the client has not made request to the route before
   if (!ipTracker.has(ip)) {
     ipTracker.set(ip, { count: 1, firstReqTime: Date.now() });
   }
@@ -29,7 +29,7 @@ const fixedWindowRateLimiter = (req, res, next) => {
       return res
         .status(429)
         .send(
-          `Too many requests, try again after ${retryAfterSeconds} seconds`
+          `Too Many Requests, try again after ${retryAfterSeconds} seconds`
         );
     }
 

@@ -68,7 +68,8 @@ describe("Rate Limiter Middleware", () => {
     res.status.mockClear();
     next.mockClear();
 
-    jest.advanceTimersByTime(60000); //simulate passing of 60 seconds
+    // Simulate passing of 60 seconds
+    jest.advanceTimersByTime(60000);
 
     // Now the request call should be allowed as a minute has passed by
     fixedWindowRateLimiter(req, res, next);

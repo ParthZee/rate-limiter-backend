@@ -13,7 +13,7 @@ afterEach(() => {
 });
 
 describe("E2E Tests for Token Bucket Rate Limiter", () => {
-  //Test - 1
+  // Test - 1
   test("Should allow a request with avaiable tokens", async () => {
     const response = await request(app).get("/limited");
     expect(response.status).toBe(200);
@@ -55,7 +55,8 @@ describe("E2E Tests for Token Bucket Rate Limiter", () => {
 
     jest.setSystemTime(new Date("2025-05-25T00:01:00Z"));
 
-    await request(app).get("/limited").set("X-Forwarded-For", "1.2.3.4"); //making sure that the next request is from the same ip address, so used .set()
+    // Making sure that the next request is from the same ip address, so used .set()
+    await request(app).get("/limited").set("X-Forwarded-For", "1.2.3.4");
 
     const clientData = ipTracker.get("1.2.3.4");
     expect(clientData.currentTokens).toBeLessThanOrEqual(10);

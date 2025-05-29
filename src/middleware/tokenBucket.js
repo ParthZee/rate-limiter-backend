@@ -1,4 +1,4 @@
-//Middleware to implement Token Bucket Rate Limiter
+// Middleware to implement Token Bucket Rate Limiter
 // Creating a map to store the ip addresses, their current tokens and the token's last refill time
 const ipTracker = new Map();
 
@@ -13,7 +13,7 @@ const tokenBucketRateLimiter = (req, res, next) => {
 
   const clientData = ipTracker.get(ip);
 
-  const msSinceLastRefill = Date.now() - clientData.lastRefillTime; // elapsed time
+  const msSinceLastRefill = Date.now() - clientData.lastRefillTime; // Elapsed time
   const msUntilNextToken = 6000 - (msSinceLastRefill % 6000);
   const retryAfterSeconds = Math.ceil(msUntilNextToken / 1000);
 
@@ -23,7 +23,7 @@ const tokenBucketRateLimiter = (req, res, next) => {
     clientData.currentTokens = Math.min(
       10,
       clientData.currentTokens + tokensToAdd
-    ); //if the tokens are greater than 10, it will take 10 as its minimum
+    ); // If the tokens are greater than 10, it will take 10 as its minimum
     clientData.lastRefillTime += tokensToAdd * 6000;
   }
 
@@ -33,7 +33,7 @@ const tokenBucketRateLimiter = (req, res, next) => {
 
     return res
       .status(429)
-      .send(`Too Many requests, try again after ${retryAfterSeconds}`);
+      .send(`Too Many Requests, try again after ${retryAfterSeconds}`);
   }
 
   clientData.currentTokens--;
