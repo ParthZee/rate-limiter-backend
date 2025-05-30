@@ -33,7 +33,7 @@ const tokenBucketRateLimiter = (req, res, next) => {
 
     return res
       .status(429)
-      .send(`Too Many Requests, try again after ${retryAfterSeconds}`);
+      .send(`Too Many Requests. Try again after ${retryAfterSeconds} seconds`);
   }
 
   clientData.currentTokens--;
