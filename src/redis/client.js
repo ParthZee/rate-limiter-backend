@@ -12,7 +12,7 @@ dotenv.config({ path: path.resolve(__dirname, "../../.env") });
 
 const client = new Redis({
   host: process.env.REDIS_HOST,
-  port: parseInt(process.env.REDIS_PORT),
+  port: parseInt(process.env.REDIS_PORT, 10),
   retryStrategy(times) {
     //redis keeps track of the count (times here)
     // reconnect every 2 seconds, up to a limit
