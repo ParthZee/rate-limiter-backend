@@ -1,4 +1,5 @@
 import client from "../redis/client.js";
+import crypto from "crypto";
 
 const slidingWindowRateLimiter = async (req, res, next) => {
   try {
@@ -45,6 +46,9 @@ const slidingWindowRateLimiter = async (req, res, next) => {
         0,
         firstEntrySeconds + WINDOW_SIZE - currentTimestamp // if the current time is passed, is a lot, then the answer will become negative so retry after 0 in that case.
       );
+
+      // Retry-After is a standard HTTP header for rate limiting
+      res.setHeader("Retry-After", retryAfterSeconds);
 
       return res
         .status(429)
