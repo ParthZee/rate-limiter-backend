@@ -43,6 +43,11 @@ describe("Rate Limiter Middleware", () => {
       fixedWindowRateLimiter(req, res, next);
     }
 
+    // Clearing the mocks to let the 11th request to generate fresh results
+    res.send.mockClear();
+    res.status.mockClear();
+    next.mockClear();
+
     // The 11th request should now be blocked
     fixedWindowRateLimiter(req, res, next);
 

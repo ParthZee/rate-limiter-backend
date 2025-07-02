@@ -14,7 +14,7 @@ afterEach(() => {
 
 describe("E2E Tests for Token Bucket Rate Limiter", () => {
   // Test - 1
-  test("Should allow a request with avaiable tokens", async () => {
+  test("Should allow a request with available tokens", async () => {
     const response = await request(app).get("/limited");
     expect(response.status).toBe(200);
     expect(response.text).toBe("Limited Requests on this Route.");
