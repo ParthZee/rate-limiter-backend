@@ -7,7 +7,8 @@ describe("Rate Limiter Middleware", () => {
   beforeEach(() => {
     // req, res and next as they are passed in the arguments below in the middleware
 
-    // We didn't create a mock function here as we aren't calling the ip like a function (req.ip()) in the middleware instead passing a string
+    // We didn't create a mock function here as we aren't calling the ip like a function (req.ip())
+    // in the middleware instead passing a string
     req = { ip: "111.222.333.444" };
     res = {
       // Setting the value as jest.fn() to create a mock function so that we can record how it is called,

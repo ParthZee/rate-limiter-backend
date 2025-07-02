@@ -22,7 +22,14 @@ const slidingWindowRateLimiter = async (req, res, next) => {
     const count = await client.zcard(`${PREFIX}:${ip}`);
 
     if (count < MAX_REQUESTS) {
-      await client.zadd(`${PREFIX}:${ip}`, currentTimestamp, currentTimestamp);
+      // we need uniqueMember just for the value of the set's entry
+      const uniqueMember = `${currentTimestamp}:${crypto.randomUUID()}`;
+
+      // Using the same value as score and value will conflict when multiple requests are passed
+      // at the exact same time (second) so set won't save it so it will throw error during E2E testing
+      await client.zadd(`${PREFIX}:${ip}`, currentTimestamp, uniqueMember);
+
+      // Defining TTL
       await client.expire(`${PREFIX}:${ip}`, WINDOW_SIZE);
       await next();
     } else {
