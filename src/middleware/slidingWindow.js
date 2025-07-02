@@ -14,6 +14,7 @@ const slidingWindowRateLimiter = async (req, res, next) => {
     // cutoffTimestamp marks the earliest valid timestamp (currentTime - WINDOW_SIZE)
     // Any score older than this falls outside the allowed window and gets removed
     const cutoffTimestamp = currentTimestamp - WINDOW_SIZE;
+
     // So min:0 to max: start of the window
     await client.zremrangebyscore(`${PREFIX}:${ip}`, 0, cutoffTimestamp);
 
