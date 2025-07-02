@@ -1,6 +1,7 @@
 import express from "express";
 import fixedWindowRateLimiter from "./middleware/fixedWindow.js";
 import { tokenBucketRateLimiter } from "./middleware/tokenBucket.js";
+import slidingWindowRateLimiter from "./middleware/slidingWindow.js";
 
 const app = express();
 
@@ -14,7 +15,7 @@ app.get("/", (req, res) => {
 });
 
 // Route for limited requests, with appropriate rate limiting middleware
-app.get("/limited", tokenBucketRateLimiter, (req, res) => {
+app.get("/limited", slidingWindowRateLimiter, (req, res) => {
   res.status(200).send("Limited Requests on this Route.");
 });
 
