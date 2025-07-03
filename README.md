@@ -85,3 +85,14 @@ npm test
 
 - Unit tests cover the core logic of individual algorithms.
 - End-to-End tests validate the behavior of the middleware in a real Express environment, using Supertest.
+
+## Middleware Test Isolation
+
+Only the specific middleware being tested should be used in app.js during test execution. Since each test suite is designed to validate a particular rate limiting strategy (e.g., Fixed Window, Token Bucket or Sliding Window), running tests for one while another middleware test file is not disabled will result in failures or inaccurate results.
+
+For example, to test Fixed Window middleware:
+
+- Use the fixedWindowRateLimiter middleware in app.js.
+- Disable other rate limiting strategies by adding ".disabled" in the other test suite's file names.
+
+This ensures consistent test results and avoids conflicts between different algorithms during test runs.
