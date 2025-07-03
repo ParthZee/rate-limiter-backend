@@ -32,7 +32,7 @@ const slidingWindowRateLimiter = async (req, res, next) => {
 
       // Defining TTL
       await client.expire(`${PREFIX}:${ip}`, WINDOW_SIZE);
-      await next();
+      return next();
     } else {
       // Getting the time of the first entry that will expire soon for the new request to be accepted
       const [member, firstScore] = await client.zrange(
@@ -53,7 +53,7 @@ const slidingWindowRateLimiter = async (req, res, next) => {
       return res
         .status(429)
         .send(
-          `Too Many Requests, Try again after ${retryAfterSeconds} seconds`
+          `Too Many Requests. Try again after ${retryAfterSeconds} seconds`
         );
     }
   } catch (err) {

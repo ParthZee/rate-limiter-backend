@@ -10,9 +10,13 @@ const __dirname = path.dirname(__filename);
 // Load .env file from project root
 dotenv.config({ path: path.resolve(__dirname, "../../.env") });
 
+const redisPort = Number.isInteger(parseInt(process.env.REDIS_PORT, 10))
+  ? parseInt(process.env.REDIS_PORT, 10)
+  : 6379;
+
 const client = new Redis({
   host: process.env.REDIS_HOST,
-  port: parseInt(process.env.REDIS_PORT, 10),
+  port: redisPort,
   retryStrategy(times) {
     //redis keeps track of the count (times here)
     // reconnect every 2 seconds, up to a limit

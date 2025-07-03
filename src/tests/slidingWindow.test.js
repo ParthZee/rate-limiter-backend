@@ -27,6 +27,7 @@ describe("Sliding Window Rate Limiter", () => {
     res = {
       status: jest.fn().mockReturnThis(),
       send: jest.fn(),
+      setHeader: jest.fn(),
     };
     next = jest.fn();
 
