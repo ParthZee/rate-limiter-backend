@@ -4,8 +4,9 @@ import request from "supertest";
 import client from "../redis/client.js";
 
 // Reset timers before/after each test
-beforeEach(() => {
+beforeEach(async () => {
   jest.useFakeTimers({ now: new Date("2025-05-25T00:00:00Z") });
+  await client.flushdb();
 });
 
 afterEach(() => {

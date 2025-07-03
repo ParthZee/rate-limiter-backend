@@ -1,8 +1,10 @@
 // Middleware to implement Token Bucket Rate Limiter
 // Creating a map to store the ip addresses, their current tokens and the token's last refill time
 const ipTracker = new Map();
+
 const REFILL_INTERVAL_MS = 6000; // Time interval (in milliseconds) to add one token
 const BUCKET_SIZE = 10; // Maximum number of tokens in the bucket
+const TTL_MS = 60000; // 1 minute TTL
 
 const tokenBucketRateLimiter = (req, res, next) => {
   const rawIp = req.ip;
@@ -13,10 +15,12 @@ const tokenBucketRateLimiter = (req, res, next) => {
     ipTracker.set(ip, {
       currentTokens: BUCKET_SIZE,
       lastRefillTime: Date.now(),
+      lastSeen: Date.now(), // Adding this to then cleanup the map like TTL behaviour through setInterval
     }); // Token set as 10 (bucket size) and we decrement it at the end
   }
 
   const clientData = ipTracker.get(ip);
+  clientData.lastSeen = Date.now();
 
   const msSinceLastRefill = Date.now() - clientData.lastRefillTime; // Elapsed time
   const msUntilNextToken =
@@ -45,5 +49,15 @@ const tokenBucketRateLimiter = (req, res, next) => {
   clientData.currentTokens--;
   next();
 };
+
+// Multiple calls will fill up the map, the memory is cleared through this clean up method based on TTL duration
+setInterval(() => {
+  const now = Date.now();
+  for (const [ip, data] of ipTracker.entries()) {
+    if (now - data.lastSeen > TTL_MS) {
+      ipTracker.delete(ip);
+    }
+  }
+}, TTL_MS);
 
 export { tokenBucketRateLimiter, ipTracker };

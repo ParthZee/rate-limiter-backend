@@ -2,12 +2,22 @@
 // Creating a map to store the ip addresses, their request count, and their first request time
 const ipTracker = new Map();
 
+const TTL_MS = 60000; // Time-to-live for inactive IPs
+const MAX_REQUESTS = 10;
+const WINDOW_SIZE_MS = 60000; // 1 minute
+
 // Middleware Function
 const fixedWindowRateLimiter = (req, res, next) => {
   const rawIp = req.ip;
   // Slicing as we are getting IPv6-mapped IPv4 address if executed on local machine (eg. ::ffff:127.0.0.1)
   const ip = rawIp.startsWith("::ffff:") ? rawIp.slice(7) : rawIp;
-  const oneMin = 60000;
+
+  // The map memory of stale entries is cleared through this clean up method based on TTL duration
+  for (const [key, value] of ipTracker.entries()) {
+    if (Date.now() - value.firstReqTime >= TTL_MS) {
+      ipTracker.delete(key);
+    }
+  }
 
   if (!ipTracker.has(ip)) {
     ipTracker.set(ip, { count: 1, firstReqTime: Date.now() });
@@ -19,9 +29,11 @@ const fixedWindowRateLimiter = (req, res, next) => {
     const clientData = ipTracker.get(ip);
     const timeElapsed = Date.now() - clientData.firstReqTime;
 
-    if (clientData.count >= 10 && timeElapsed < oneMin) {
+    if (clientData.count >= MAX_REQUESTS && timeElapsed < WINDOW_SIZE_MS) {
       // Here Math.ceil rounds the number to the highest nearest integer (5.1 -> 6)
-      const retryAfterSeconds = Math.ceil((oneMin - timeElapsed) / 1000);
+      const retryAfterSeconds = Math.ceil(
+        (WINDOW_SIZE_MS - timeElapsed) / 1000
+      );
 
       // Retry-After is a standard HTTP header for rate limiting
       res.setHeader("Retry-After", retryAfterSeconds);
@@ -33,7 +45,7 @@ const fixedWindowRateLimiter = (req, res, next) => {
         );
     }
 
-    if (timeElapsed >= oneMin) {
+    if (timeElapsed >= WINDOW_SIZE_MS) {
       clientData.count = 1;
       clientData.firstReqTime = Date.now();
     } else {

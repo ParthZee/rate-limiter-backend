@@ -1,15 +1,16 @@
 import client from "../redis/client.js";
 import crypto from "crypto";
 
+const WINDOW_SIZE = 60;
+const MAX_REQUESTS = 10;
+const PREFIX = "rate_limiter";
+
 const slidingWindowRateLimiter = async (req, res, next) => {
   try {
     const rawIp = req.ip;
     const ip = rawIp.startsWith("::ffff:") ? rawIp.slice(7) : rawIp;
 
     const currentTimestamp = Math.floor(Date.now() / 1000); // in seconds
-    const WINDOW_SIZE = 60;
-    const MAX_REQUESTS = 10;
-    const PREFIX = "rate_limiter";
 
     // Remove entries older than the 60-second window
     // cutoffTimestamp marks the earliest valid timestamp (currentTime - WINDOW_SIZE)
