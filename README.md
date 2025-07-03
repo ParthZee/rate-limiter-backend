@@ -23,8 +23,8 @@ This project implements a backend API rate limiter using different algorithms. I
 - Node.js
 - Express.js
 - Redis
-- Supertest (E2E testing)
 - Jest (unit testing)
+- Supertest (E2E testing)
 - dotenv (for environment variable management)
 
 ## Available Rate Limiting Algorithms
@@ -49,6 +49,7 @@ rate-limiter-backend/
 │   ├── redis/
 │   │   └── client.js
 │   ├── tests/
+│   │   ├── fixedWindow.e2e.test.js
 │   │   ├── fixedWindow.test.js
 │   │   ├── slidingWindow.e2e.test.js
 │   │   ├── slidingWindow.test.js
@@ -82,5 +83,5 @@ This project includes both unit tests and end-to-end tests. You can run all test
 npm test
 ```
 
-Unit tests cover the core logic of individual algorithms.
-End-to-End tests validate the behavior of the middleware in a real Express environment, using Supertest.
+- Unit tests cover the core logic of individual algorithms.
+- End-to-End tests validate the behavior of the middleware in a real Express environment, using Supertest.
