@@ -23,8 +23,8 @@ This project implements a backend API rate limiter using different algorithms. I
 - Node.js
 - Express.js
 - Redis
-- Jest (unit testing)
 - Supertest (E2E testing)
+- Jest (unit testing)
 - dotenv (for environment variable management)
 
 ## Available Rate Limiting Algorithms
