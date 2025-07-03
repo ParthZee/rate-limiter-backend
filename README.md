@@ -47,7 +47,8 @@ rate-limiter-backend/
 │   │   ├── slidingWindow.js
 │   │   └── tokenBucket.js
 │   ├── redis/
-│   │   └── client.js
+│   │   ├── client.js
+│   │   └── helper.js
 │   ├── tests/
 │   │   ├── fixedWindow.e2e.test.js
 │   │   ├── fixedWindow.test.js

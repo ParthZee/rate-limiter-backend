@@ -1,12 +1,12 @@
 import app from "../app.js";
 import { jest } from "@jest/globals";
 import request from "supertest";
-import client from "../redis/client.js";
+import { resetRedisState, shutdownRedisClient } from "../redis/helper.js";
 
 // Reset timers before/after each test and flushed key before every test to avoid cross-test interference.
 beforeEach(async () => {
   jest.useFakeTimers({ now: new Date("2025-05-25T00:00:00Z") });
-  await client.flushdb();
+  await resetRedisState();
 });
 
 afterEach(() => {
@@ -15,7 +15,7 @@ afterEach(() => {
 
 // imported the redis client and closing it to handle "the worker process failed to exit gracefully error".
 afterAll(async () => {
-  await client.quit();
+  await shutdownRedisClient();
 });
 
 describe("E2E Tests for Sliding Window Rate Limiter", () => {
