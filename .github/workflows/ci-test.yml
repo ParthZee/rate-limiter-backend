@@ -1,34 +1,13 @@
-name: Node.js CI
+name: Node.js Tests
 
 on:
   push:
-    branches: [feature/ral-10-github-actions]
-  # pull_request:
-  #   branches: [main]
+    branches: ["**"]
+  pull_request:
+    branches: [main]
 
 jobs:
-  # Job - build
-  build:
-    runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        node-version: [22.x]
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ matrix.node-version }}
-
-      - name: Install Dependencies
-        run: npm ci
-
-  # Job - test
   test:
-    needs: build
     runs-on: ubuntu-latest
 
     strategy:
@@ -46,7 +25,6 @@ jobs:
       - name: Install Dependencies
         run: npm ci
 
-      # Only running fixed window tests for now.
       # Other algorithms commented out to prevent middleware interference.
       - name: Run Fixed Window Algorithm Tests
         run: npm run test:fixed
