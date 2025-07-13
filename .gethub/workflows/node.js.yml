@@ -2,7 +2,7 @@ name: Node.js CI
 
 on:
   push:
-    branches: [feature/github-actions-ci]
+    branches: [feature/ral-10-github-actions]
   # pull_request:
   #   branches: [main]
 
