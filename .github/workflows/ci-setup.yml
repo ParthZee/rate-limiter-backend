@@ -1,4 +1,4 @@
-name: Node.js Build
+name: Dependency Install Check
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
     branches: [main]
 
 jobs:
-  build:
+  dependencyCheck:
     runs-on: ubuntu-latest
 
     strategy:
