@@ -4,7 +4,6 @@
   "type": "module",
   "scripts": {
     "start": "node src/server.js",
-    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
     "test:fixed": "node --experimental-vm-modules node_modules/jest/bin/jest.js tests/fixedWindow.test.js tests/fixedWindow.e2e.test.js",
     "test:token": "node --experimental-vm-modules node_modules/jest/bin/jest.js tests/tokenBucket.test.js tests/tokenBucket.e2e.test.js",
     "test:sliding": "node --experimental-vm-modules node_modules/jest/bin/jest.js tests/slidingWindow.test.js tests/slidingWindow.e2e.test.js"
