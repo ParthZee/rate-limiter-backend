@@ -4,7 +4,9 @@
   "type": "module",
   "scripts": {
     "start": "node src/server.js",
-    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js"
+    "test:fixed": "node --experimental-vm-modules node_modules/jest/bin/jest.js tests/fixedWindow.test.js tests/fixedWindow.e2e.test.js",
+    "test:token": "node --experimental-vm-modules node_modules/jest/bin/jest.js tests/tokenBucket.test.js tests/tokenBucket.e2e.test.js",
+    "test:sliding": "node --experimental-vm-modules node_modules/jest/bin/jest.js tests/slidingWindow.test.js tests/slidingWindow.e2e.test.js"
   },
   "keywords": [],
   "author": "",
@@ -13,7 +15,9 @@
   "dependencies": {
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
-    "ioredis": "^5.6.1"
+    "ioredis": "^5.6.1",
+    "swagger-jsdoc": "^6.3.0",
+    "swagger-ui-express": "^5.0.1"
   },
   "devDependencies": {
     "jest": "^29.7.0",

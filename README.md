@@ -39,6 +39,9 @@ You can easily switch the algorithm in app.js by replacing the imported middlewa
 
 ```
 rate-limiter-backend/
+├── .github/workflows
+│   ├── ci-setup.yml
+│   └── ci-test.yml
 ├── docs/
 │   └── rate-limiting.md
 ├── src/
@@ -78,22 +81,32 @@ REDIS_PORT=6379
 
 ## Running Tests
 
-This project includes both unit tests and end-to-end tests. You can run all tests using:
+This project includes both unit tests and end-to-end tests for each rate limiting algorithm. To run tests for a specific middleware, use one of the following commands:
 
 ```bash
-npm test
+npm run test:fixed    # Runs Fixed Window unit and E2E tests
+npm run test:token    # Runs Token Bucket unit and E2E tests
+npm run test:sliding  # Runs Sliding Window unit and E2E tests
 ```
 
-- Unit tests cover the core logic of individual algorithms.
-- End-to-End tests validate the behavior of the middleware in a real Express environment, using Supertest.
+Unit tests cover the core logic of individual algorithms.
+End-to-End tests validate the behavior of the middleware in a real Express environment, using Supertest.
+
+**Important:** Before running a test command, ensure that the corresponding middleware is imported and used in `app.js` on the `/limited` route. See the next section for details.
 
 ## Middleware Test Isolation
 
-Only the specific middleware being tested should be used in app.js during test execution. Since each test suite is designed to validate a particular rate limiting strategy (e.g., Fixed Window, Token Bucket or Sliding Window), running tests for one while another middleware test file is not disabled will result in failures or inaccurate results.
+To avoid test failures and ensure accurate results, only the middleware you want to test should be imported and used in `app.js` on the `/limited` route. Each test script in `package.json` is designed to run the tests for a single rate limiter.
 
-For example, to test Fixed Window middleware:
+**How to test a specific middleware:**
 
-- Use the fixedWindowRateLimiter middleware in app.js.
-- Disable other rate limiting strategies by adding ".disabled" in the other test suite's file names.
+1. In `app.js`, import and use the desired middleware on the `/limited` route. For example:
 
-This ensures consistent test results and avoids conflicts between different algorithms during test runs.
+   ```js
+   import fixedWindowRateLimiter from "./middleware/fixedWindow.js";
+   app.get("/limited", fixedWindowRateLimiter, ...);
+   ```
+
+2. Run the corresponding test command for that middleware, as listed above in the Running Tests section.
+
+Repeat this process for other middlewares by updating `app.js` and running the appropriate test command.
