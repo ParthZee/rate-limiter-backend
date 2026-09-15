@@ -18,8 +18,14 @@ const DEFAULT_CONFIG = {
     prefix: "rate_limiter",
 };
 
-const fixedWindowIpTracker = new Map();
-const tokenBucketIpTracker = new Map();
+export const getDefaultConfig = () => {
+    return {
+        ...DEFAULT_CONFIG
+    }
+}
+
+export const fixedWindowIpTracker = new Map();
+export const tokenBucketIpTracker = new Map();
 
 export const fixedWindowAlgorithm = (ip, config) => {
 
@@ -112,7 +118,7 @@ export const tokenBucketAlgorithm = (ip, config) => {
 
 // Clean-up interval for token bucket IPs.
 // Multiple calls will fill up the map, the memory is cleared through this clean up method based on TTL duration
-setInterval(() => {
+const cleanupInterval  = setInterval(() => {
     const now = Date.now();
     for (const [ip, data] of tokenBucketIpTracker.entries()) {
         if (now - data.lastSeen > DEFAULT_CONFIG.ttlMs) {
@@ -120,6 +126,8 @@ setInterval(() => {
         }
     }
 }, DEFAULT_CONFIG.ttlMs);
+
+cleanupInterval.unref();
 
 export const slidingWindowAlgorithm = async (ip, config) => {
     const key = `${config.prefix}:${ip}`;

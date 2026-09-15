@@ -21,18 +21,18 @@ afterAll(async () => {
 describe("E2E Tests for Sliding Window Rate Limiter", () => {
   // Test - 1
   test("Should allow request within limit", async () => {
-    const response = await request(app).get("/limited");
+    const response = await request(app).get("/limited?algorithm=sliding-window");
     expect(response.status).toBe(200);
-    expect(response.text).toBe("Limited Requests on this Route.");
+    expect(response.text).toBe("Limited Requests on this Route using sliding-window algorithm.");
   });
 
   // Test - 2
   test("Should block request after exceeding limit", async () => {
     for (let i = 0; i < 10; i++) {
-      await request(app).get("/limited");
+      await request(app).get("/limited?algorithm=sliding-window");
     }
 
-    const response = await request(app).get("/limited");
+    const response = await request(app).get("/limited?algorithm=sliding-window");
     expect(response.status).toBe(429);
     expect(response.text).toMatch(/Try again after \d+ seconds/);
   });
@@ -40,29 +40,27 @@ describe("E2E Tests for Sliding Window Rate Limiter", () => {
   // Test - 3
   test("Should allow request after enough time has passed", async () => {
     for (let i = 0; i < 10; i++) {
-      await request(app).get("/limited");
+      await request(app).get("/limited?algorithm=sliding-window");
     }
 
-    const blocked = await request(app).get("/limited");
+    const blocked = await request(app).get("/limited?algorithm=sliding-window");
     expect(blocked.status).toBe(429);
 
     // Move 61 seconds ahead
     jest.setSystemTime(new Date("2025-05-25T00:01:01Z"));
 
-    const allowed = await request(app).get("/limited");
+    const allowed = await request(app).get("/limited?algorithm=sliding-window");
     expect(allowed.status).toBe(200);
   });
 
   // Test - 4
   test("Rate limiter tracks IP separately", async () => {
     for (let i = 0; i < 10; i++) {
-      await request(app).get("/limited").set("X-Forwarded-For", "1.2.3.4");
+      await request(app).get("/limited?algorithm=sliding-window").set("X-Forwarded-For", "192.0.2.5");
     }
 
     // Other IP should be unaffected
-    const response = await request(app)
-      .get("/limited")
-      .set("X-Forwarded-For", "5.6.7.8");
+    const response = await request(app).get("/limited?algorithm=sliding-window").set("X-Forwarded-For", "192.0.2.6");
     expect(response.status).toBe(200);
   });
 
@@ -70,49 +68,39 @@ describe("E2E Tests for Sliding Window Rate Limiter", () => {
   test("Should gradually allow requests as old ones expire", async () => {
     // Send 10 requests to fill the window
     for (let i = 0; i < 10; i++) {
-      await request(app).get("/limited").set("X-Forwarded-For", "1.2.3.4");
+      await request(app).get("/limited?algorithm=sliding-window");
     }
 
     // 11th request should be blocked
-    const blocked = await request(app)
-      .get("/limited")
-      .set("X-Forwarded-For", "1.2.3.4");
+    const blocked = await request(app).get("/limited?algorithm=sliding-window");
     expect(blocked.status).toBe(429);
 
     // Advance time by 30 seconds
     jest.setSystemTime(new Date("2025-05-25T00:00:30Z"));
 
     // Still might be blocked depending on sliding window implementation
-    const midWindow = await request(app)
-      .get("/limited")
-      .set("X-Forwarded-For", "1.2.3.4");
+    const midWindow = await request(app).get("/limited?algorithm=sliding-window");
     expect([200, 429]).toContain(midWindow.status);
 
     // Advance time to clear all previous timestamps (61s total)
     jest.setSystemTime(new Date("2025-05-25T00:01:01Z"));
 
-    const allowed = await request(app)
-      .get("/limited")
-      .set("X-Forwarded-For", "1.2.3.4");
+    const allowed = await request(app).get("/limited?algorithm=sliding-window");
     expect(allowed.status).toBe(200);
   });
 
   // Test - 6
   test("Should apply rate limit separately to each IP", async () => {
     for (let i = 0; i < 10; i++) {
-      await request(app).get("/limited").set("X-Forwarded-For", "10.0.0.1");
+      await request(app).get("/limited?algorithm=sliding-window").set("X-Forwarded-For", "192.0.2.5");
     }
 
     // This IP is blocked now
-    const blocked = await request(app)
-      .get("/limited")
-      .set("X-Forwarded-For", "10.0.0.1");
+    const blocked = await request(app).get("/limited?algorithm=sliding-window").set("X-Forwarded-For", "192.0.2.5");
     expect(blocked.status).toBe(429);
 
     // New IP should not be blocked
-    const other = await request(app)
-      .get("/limited")
-      .set("X-Forwarded-For", "10.0.0.2");
+    const other = await request(app).get("/limited?algorithm=sliding-window").set("X-Forwarded-For", "192.0.2.6");
     expect(other.status).toBe(200);
   });
 
@@ -123,16 +111,14 @@ describe("E2E Tests for Sliding Window Rate Limiter", () => {
 
     // Send 10 requests to hit the limit
     for (let i = 0; i < 10; i++) {
-      await request(app).get("/limited").set("X-Forwarded-For", "8.8.8.8");
+      await request(app).get("/limited?algorithm=sliding-window");
     }
 
     // Advance time by 10 seconds
     jest.setSystemTime(new Date(now.getTime() + 10000));
 
     // 11th request should be blocked, retry after should be ~50
-    const res = await request(app)
-      .get("/limited")
-      .set("X-Forwarded-For", "8.8.8.8");
+    const res = await request(app).get("/limited?algorithm=sliding-window");
 
     expect(res.status).toBe(429);
     expect(res.text).toContain("Try again after 50 seconds");
