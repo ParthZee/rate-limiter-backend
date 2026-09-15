@@ -10,9 +10,24 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
-    strategy:
+    services:
+      redis: 
+        image: redis:latest
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    strategy: 
       matrix:
         node-version: [22.x]
+
+    env:
+      REDIS_HOST: localhost
+      REDIS_PORT: 6379
 
     steps:
       - uses: actions/checkout@v4
@@ -25,12 +40,5 @@ jobs:
       - name: Install Dependencies
         run: npm ci
 
-      # Other algorithms commented out to prevent middleware interference.
-      - name: Run Fixed Window Algorithm Tests
-        run: npm run test:fixed
-
-      # - name: Run Token Bucket Algorithm Tests
-      #   run: npm run test:token
-
-      # - name: Run Sliding Window Log Algorithm Tests
-      #   run: npm run test:sliding
+      - name: Run Rate Limiter Algorithm Tests
+        run: npm run test
