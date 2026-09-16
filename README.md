@@ -40,7 +40,6 @@ You can easily switch the algorithm in app.js by replacing the imported middlewa
 ```
 rate-limiter-backend/
 ├── .github/workflows
-│   ├── ci-setup.yml
 │   └── ci-test.yml
 ├── docs/
 │   └── rate-limiting.md
