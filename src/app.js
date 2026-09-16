@@ -11,11 +11,16 @@ app.enable("trust proxy");
 
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(openapiSpecification));
 
+const VALID_ALGORITHMS = ["fixed-window", "sliding-window", "token-bucket"];
+
 // Dynamic rate limiter middleware that reads algorithm from query params
 const dynamicRateLimiter = (req, res, next) => {
-  const algorithm = req.query.algorithm || "fixed-window";
-  req.algorithm = algorithm;   // attach it to req for downstream handlers
+  const requestedAlgorithm = req.query.algorithm;
+  const algorithm = VALID_ALGORITHMS.includes(requestedAlgorithm)
+    ? requestedAlgorithm : "fixed-window";
 
+  req.algorithm = algorithm;   // attach the validated (not raw) value
+  
   // Create rate limiter with the specified algorithm
   const limiter = rateLimiter({ algorithm });
 
@@ -46,7 +51,9 @@ app.get("/", (req, res) => {
  *    description: >
  *      Executes a request through the rate limiter.
  *      The rate limiting algorithm can be selected
- *      using the algorithm query parameter.
+ *      using the algorithm query parameter. If an
+ *      unrecognized value is provided, the request
+ *      defaults to the fixed-window algorithm.
  *    parameters:
  *      - in: query
  *        name: algorithm

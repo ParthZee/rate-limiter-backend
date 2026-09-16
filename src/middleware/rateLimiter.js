@@ -14,7 +14,6 @@ const DEFAULT_CONFIG = {
     refillIntervalMs: 6000, // 6 seconds for token bucket
     bucketSize: 10, // for token bucket
     ttlMs: 60000, // 1 minute TTL for cleanup
-    useRedis: false, // default to in-memory storage
     prefix: "rate_limiter",
 };
 
@@ -72,7 +71,14 @@ export const fixedWindowAlgorithm = (ip, config) => {
 };
 
 export const tokenBucketAlgorithm = (ip, config) => {
-    
+
+    const now = Date.now();
+    for (const [trackedIp, data] of tokenBucketIpTracker.entries()) {
+        if (now - data.lastSeen > config.ttlMs) {
+            tokenBucketIpTracker.delete(trackedIp);
+        }
+    }
+
     // Condition to check if the client has not made request to the route before
     if (!tokenBucketIpTracker.has(ip)) {
         tokenBucketIpTracker.set(ip, {
@@ -115,19 +121,6 @@ export const tokenBucketAlgorithm = (ip, config) => {
         retryAfter: null
     };
 };
-
-// Clean-up interval for token bucket IPs.
-// Multiple calls will fill up the map, the memory is cleared through this clean up method based on TTL duration
-const cleanupInterval  = setInterval(() => {
-    const now = Date.now();
-    for (const [ip, data] of tokenBucketIpTracker.entries()) {
-        if (now - data.lastSeen > DEFAULT_CONFIG.ttlMs) {
-            tokenBucketIpTracker.delete(ip);
-        }
-    }
-}, DEFAULT_CONFIG.ttlMs);
-
-cleanupInterval.unref();
 
 export const slidingWindowAlgorithm = async (ip, config) => {
     const key = `${config.prefix}:${ip}`;
