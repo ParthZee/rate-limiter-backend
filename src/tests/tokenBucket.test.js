@@ -13,12 +13,13 @@ afterAll(async () => {
 describe("Token Bucket Algorithm", () => {
   const ip = "192.0.2.1";
   const config = getDefaultConfig();
+  const trackerKey = `${config.prefix}:${ip}`;
 
   // Test - 1
   test("A token should be decremented on a request call", () => {
     tokenBucketAlgorithm(ip, config);
 
-    const clientData = tokenBucketIpTracker.get(ip);
+    const clientData = tokenBucketIpTracker.get(trackerKey);
     expect(clientData.currentTokens).toBe(9);
 
     tokenBucketAlgorithm(ip, config);
@@ -34,7 +35,7 @@ describe("Token Bucket Algorithm", () => {
 
     // 11th request when 0 tokens are left
     const result = tokenBucketAlgorithm(ip, config);
-    let clientData = tokenBucketIpTracker.get(ip);
+    let clientData = tokenBucketIpTracker.get(trackerKey);
 
     expect(clientData.currentTokens).toBe(0);
     expect(result.allowed).toBe(false);
@@ -47,16 +48,16 @@ describe("Token Bucket Algorithm", () => {
     jest.useFakeTimers();
 
     tokenBucketAlgorithm(ip, config);
-    let clientData = tokenBucketIpTracker.get(ip);
+    let clientData = tokenBucketIpTracker.get(trackerKey);
     expect(clientData.currentTokens).toBe(9);
 
     tokenBucketAlgorithm(ip, config);
-    clientData = tokenBucketIpTracker.get(ip);
+    clientData = tokenBucketIpTracker.get(trackerKey);
     expect(clientData.currentTokens).toBe(8);
 
     jest.advanceTimersByTime(6000);
     tokenBucketAlgorithm(ip, config);
-    clientData = tokenBucketIpTracker.get(ip);
+    clientData = tokenBucketIpTracker.get(trackerKey);
     // Should refill +1 (to 9), but request consumes 1 => back to 8
     expect(clientData.currentTokens).toBe(8);
 
@@ -96,7 +97,7 @@ describe("Token Bucket Algorithm", () => {
     jest.advanceTimersByTime(60000); // Enough to generate 10 tokens
     tokenBucketAlgorithm(ip, config); // Triggers refill
 
-    const clientData = tokenBucketIpTracker.get(ip);
+    const clientData = tokenBucketIpTracker.get(trackerKey);
     expect(clientData.currentTokens).toBe(9); // Instead of 18
 
     jest.useRealTimers();

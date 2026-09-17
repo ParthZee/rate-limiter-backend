@@ -28,20 +28,26 @@ export const tokenBucketIpTracker = new Map();
 
 export const fixedWindowAlgorithm = (ip, config) => {
 
-    // The map memory of stale entries is cleared through this clean up method based on TTL duration
+    const trackerKey = `${config.prefix}:${ip}`;
+
+    // Cleanup must never delete an entry before its rate-limit window has actually closed.
+    // If windowSizeMs is longer than ttlMs, using ttlMs alone would wipe the counter early,
+    // silently granting a fresh allowance mid-window - so we clean up based on whichever is longer.
+    const effectiveTtl = Math.max(config.ttlMs, config.windowSizeMs);
+
     for (const [key, value] of fixedWindowIpTracker.entries()) {
-        if (Date.now() - value.firstReqTime >= config.ttlMs) {
+        if (Date.now() - value.firstReqTime >= effectiveTtl) {
             fixedWindowIpTracker.delete(key);
         }
     }
 
-    if (!fixedWindowIpTracker.has(ip)) {
-        fixedWindowIpTracker.set(ip, { count: 1, firstReqTime: Date.now() });
+    if (!fixedWindowIpTracker.has(trackerKey)) {
+        fixedWindowIpTracker.set(trackerKey, { count: 1, firstReqTime: Date.now() });
     }
     // Client has already made request to the route before
     else {
         // Get data in the form of object from the ip address
-        const clientData = fixedWindowIpTracker.get(ip);
+        const clientData = fixedWindowIpTracker.get(trackerKey);
         const timeElapsed = Date.now() - clientData.firstReqTime;
 
         if (clientData.count >= config.maxRequests && timeElapsed < config.windowSizeMs) {
@@ -72,6 +78,8 @@ export const fixedWindowAlgorithm = (ip, config) => {
 
 export const tokenBucketAlgorithm = (ip, config) => {
 
+    const trackerKey = `${config.prefix}:${ip}`;
+
     const now = Date.now();
     for (const [trackedIp, data] of tokenBucketIpTracker.entries()) {
         if (now - data.lastSeen > config.ttlMs) {
@@ -80,15 +88,15 @@ export const tokenBucketAlgorithm = (ip, config) => {
     }
 
     // Condition to check if the client has not made request to the route before
-    if (!tokenBucketIpTracker.has(ip)) {
-        tokenBucketIpTracker.set(ip, {
+    if (!tokenBucketIpTracker.has(trackerKey)) {
+        tokenBucketIpTracker.set(trackerKey, {
             currentTokens: config.bucketSize,
             lastRefillTime: Date.now(),
             lastSeen: Date.now(), // Adding this to then cleanup the map like TTL behaviour through setInterval
         }); // Token set as 10 (bucket size) and we decrement it at the end
     }
 
-    const clientData = tokenBucketIpTracker.get(ip);
+    const clientData = tokenBucketIpTracker.get(trackerKey);
     clientData.lastSeen = Date.now();
 
     const msSinceLastRefill = Date.now() - clientData.lastRefillTime; // Elapsed time
@@ -124,7 +132,10 @@ export const tokenBucketAlgorithm = (ip, config) => {
 
 export const slidingWindowAlgorithm = async (ip, config) => {
     const key = `${config.prefix}:${ip}`;
-    const windowSize = config.windowSizeMs / 1000;
+    
+    // Redis's EXPIRE requires a whole-number of seconds, so round up (never down,
+    // to avoid shortening the configured window) before it's used anywhere below.
+    const windowSize = Math.ceil(config.windowSizeMs / 1000);
     const currentTimestamp = Math.floor(Date.now() / 1000);
 
     // Remove entries older than the 60-second window
