@@ -6,6 +6,7 @@ const port = process.env.PORT || 3000;
 // App listens to port 3000
 const server = app.listen(port, () => {
   console.log(`App is listening on port no. ${port}`);
+  console.log(`API docs available at http://localhost:${port}/api-docs`);
 });
 
 server.on("error", (err) => {

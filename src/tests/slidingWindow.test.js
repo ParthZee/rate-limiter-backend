@@ -13,31 +13,21 @@ jest.unstable_mockModule("../redis/client.js", () => ({
 
 // Import AFTER mocking
 // This type of import uses object destructuring to assign
-// the `default` export to the local variable `slidingWindowRateLimiter`
-const { default: slidingWindowRateLimiter } = await import(
-  "../middleware/slidingWindow.js"
-);
+// the `default` export to the local variable `slidingWindowAlgorithm`
+const { slidingWindowAlgorithm, getDefaultConfig } = await import("../middleware/rateLimiter.js");
 const { default: client } = await import("../redis/client.js");
 
+beforeEach(() => {
+  jest.clearAllMocks();
+});
+
+afterEach(() => {
+  jest.resetAllMocks(); // Ensures no lingering state
+});
+
 describe("Sliding Window Rate Limiter", () => {
-  let req, res, next;
-
-  beforeEach(() => {
-    req = { ip: "111.222.333.444" };
-    res = {
-      status: jest.fn().mockReturnThis(),
-      send: jest.fn(),
-      setHeader: jest.fn(),
-    };
-    next = jest.fn();
-
-    // Clear all mocks
-    jest.clearAllMocks();
-  });
-
-  afterEach(() => {
-    jest.resetAllMocks(); // Ensures no lingering state
-  });
+  const ip = "192.0.2.1";
+  const config = getDefaultConfig();
 
   // Test - 1: Allow request when under limit
   test("Allows request when under limit", async () => {
@@ -46,13 +36,15 @@ describe("Sliding Window Rate Limiter", () => {
     client.zadd.mockResolvedValue(1);
     client.expire.mockResolvedValue(1);
 
-    await slidingWindowRateLimiter(req, res, next);
+    const result = await slidingWindowAlgorithm(ip, config);
 
     expect(client.zremrangebyscore).toHaveBeenCalled();
     expect(client.zcard).toHaveBeenCalled();
     expect(client.zadd).toHaveBeenCalled();
     expect(client.expire).toHaveBeenCalled();
-    expect(next).toHaveBeenCalled();
+    
+    expect(result.allowed).toBe(true);
+    expect(result.retryAfter).toBe(null);
   });
 
   // Test - 2: Block request when over limit
@@ -64,14 +56,13 @@ describe("Sliding Window Rate Limiter", () => {
       (Math.floor(Date.now() / 1000) - 50).toString(),
     ]);
 
-    await slidingWindowRateLimiter(req, res, next);
+    const result = await slidingWindowAlgorithm(ip, config);
 
     expect(client.zrange).toHaveBeenCalled();
-    expect(res.status).toHaveBeenCalledWith(429);
-    expect(res.send).toHaveBeenCalledWith(
-      expect.stringContaining("Try again after")
-    );
-    expect(next).not.toHaveBeenCalled();
+    
+    expect(result.allowed).toBe(false);
+    expect(result.retryAfter).not.toBe(null);
+    expect(result.retryAfter).toBe(10);
   });
 
   // Test - 3: Remove outdated entries
@@ -81,7 +72,7 @@ describe("Sliding Window Rate Limiter", () => {
     client.zadd.mockResolvedValue(1);
     client.expire.mockResolvedValue(1);
 
-    await slidingWindowRateLimiter(req, res, next);
+    await slidingWindowAlgorithm(ip, config);
 
     expect(client.zremrangebyscore).toHaveBeenCalledWith(
       expect.stringContaining("rate_limiter"),
@@ -91,14 +82,10 @@ describe("Sliding Window Rate Limiter", () => {
   });
 
   // Test - 4: Handle Redis error
-  test("Handles Redis client error gracefully", async () => {
+  test("Should propagate an error when Redis fails", async () => {
     client.zremrangebyscore.mockRejectedValue(new Error("Redis down"));
 
-    await slidingWindowRateLimiter(req, res, next);
-
-    expect(res.status).toHaveBeenCalledWith(500);
-    expect(res.send).toHaveBeenCalledWith("Internal Server Error");
-    expect(next).not.toHaveBeenCalled();
+    await expect(slidingWindowAlgorithm(ip, config)).rejects.toThrow("Redis down");
   });
 
   // Test - 5: Calculate retry after seconds
@@ -110,10 +97,10 @@ describe("Sliding Window Rate Limiter", () => {
     client.zcard.mockResolvedValue(10);
     client.zrange.mockResolvedValue(["dummy", oldScore]);
 
-    await slidingWindowRateLimiter(req, res, next);
+    const result = await slidingWindowAlgorithm(ip, config);
 
-    expect(res.send).toHaveBeenCalledWith(
-      expect.stringContaining("Try again after 30 seconds")
-    );
+    expect(result.allowed).toBe(false);
+    expect(result.retryAfter).not.toBe(null);
+    expect(result.retryAfter).toBe(30);
   });
 });
