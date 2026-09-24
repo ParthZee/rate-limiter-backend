@@ -3,7 +3,9 @@ services:
     depends_on:
       redis:
         condition: service_healthy
-    build: .
+    build:
+      context: .
+      target: development
     ports:
       - 3000:3000
     environment:
